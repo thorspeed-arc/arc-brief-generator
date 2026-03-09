@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARC Brief Generator v1.5</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#060c18;color:#b8cfe8;font-family:'Syne',sans-serif;min-height:100vh}
+  input,textarea,select{background:rgba(6,12,24,0.9);border:1px solid rgba(59,130,246,0.25);border-radius:2px;color:#b8cfe8;font-family:'Syne',sans-serif;font-size:13px;padding:9px 12px;width:100%;outline:none;transition:border-color 0.15s}
+  input:focus,textarea:focus,select:focus{border-color:rgba(59,130,246,0.5);box-shadow:0 0 0 2px rgba(59,130,246,0.07)}
+  input::placeholder,textarea::placeholder{color:#1e2e42}
+  select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%233b82f6' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;background-color:rgba(6,12,24,0.9)}
+  select option{background:#0a1225;color:#b8cfe8}
+  textarea{resize:vertical;line-height:1.5}
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(59,130,246,0.25)}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+  .header{border-bottom:1px solid rgba(59,130,246,0.2);padding:18px 32px;display:flex;align-items:center;gap:16px;background:rgba(8,14,30,0.98);position:sticky;top:0;z-index:100;backdrop-filter:blur(8px)}
+  .logo{width:40px;height:40px;border:2px solid #3b82f6;display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:12px;color:#3b82f6;font-weight:700;flex-shrink:0;position:relative}
+  .logo::after{content:'';position:absolute;top:-4px;right:-4px;width:6px;height:6px;background:#3b82f6}
+  .h-title{font-size:12px;font-weight:700;letter-spacing:0.2em;color:#3b82f6;text-transform:uppercase}
+  .h-sub{font-size:10px;color:#3a5070;letter-spacing:0.1em;font-family:monospace;margin-top:2px}
+  .status{margin-left:auto;display:flex;align-items:center;gap:8px;font-family:monospace;font-size:10px;color:#3a5070}
+  .dot{width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e;animation:blink 2s infinite}
+
+  .body{max-width:1160px;margin:0 auto;padding:28px 32px 60px;display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .panel{background:rgba(10,18,36,0.8);border:1px solid rgba(59,130,246,0.15);border-radius:2px}
+  .panel-hdr{padding:13px 18px;border-bottom:1px solid rgba(59,130,246,0.1);display:flex;align-items:center;gap:10px}
+  .panel-num{font-family:monospace;font-size:10px;color:#3b82f6;background:rgba(59,130,246,0.1);padding:2px 8px;letter-spacing:0.1em}
+  .panel-title{font-size:10px;font-weight:700;letter-spacing:0.15em;color:#7a9cbc;text-transform:uppercase}
+  .panel-body{padding:18px;display:flex;flex-direction:column;gap:14px}
+
+  .field{display:flex;flex-direction:column;gap:5px}
+  .lbl{font-size:9px;font-weight:700;letter-spacing:0.15em;color:#3a5070;text-transform:uppercase;font-family:monospace}
+  .req{color:#3b82f6}
+  .hint{font-size:9px;color:#2a3a55;font-family:monospace;margin-top:1px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .roles-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .role-item{background:rgba(6,12,24,0.7);border:1px solid rgba(59,130,246,0.1);padding:9px 11px}
+  .role-lbl{font-size:9px;font-family:monospace;color:#3b82f6;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:5px}
+  .role-select{background:transparent;border:none;border-bottom:1px solid rgba(59,130,246,0.25);color:#b8cfe8;font-family:monospace;font-size:12px;width:100%;outline:none;padding:3px 0;cursor:pointer;appearance:none}
+  .divider{height:1px;background:rgba(59,130,246,0.1);margin:2px 0}
+
+  .btn{width:100%;padding:13px;background:#1d4ed8;border:1px solid #3b82f6;color:#fff;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:all 0.15s}
+  .btn:hover{background:#2563eb;box-shadow:0 0 20px rgba(59,130,246,0.2)}
+  .btn.done{background:rgba(34,197,94,0.12);border-color:#22c55e;color:#22c55e}
+
+  .output-section{grid-column:1/-1}
+  .tabs{display:flex;border-bottom:1px solid rgba(59,130,246,0.15)}
+  .tab{padding:11px 28px;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;color:#3a5070;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Syne',sans-serif;transition:all 0.15s}
+  .tab:hover{color:#7a9cbc}
+  .tab.active{color:#3b82f6;border-bottom-color:#3b82f6}
+  .brief-box{background:rgba(6,12,24,0.95);border:1px solid rgba(59,130,246,0.15);border-top:none;position:relative}
+  .brief-text{font-family:monospace;font-size:11.5px;line-height:1.75;color:#8aacc8;padding:22px;white-space:pre-wrap;word-break:break-word;max-height:420px;overflow-y:auto;animation:fadeIn 0.2s ease}
+  .copy-btn{position:absolute;top:10px;right:10px;padding:5px 14px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#3b82f6;font-family:monospace;font-size:9px;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;transition:all 0.15s}
+  .copy-btn:hover{background:rgba(59,130,246,0.2)}
+  .copy-btn.copied{background:rgba(34,197,94,0.1);border-color:#22c55e;color:#22c55e}
+  .footer{display:flex;gap:10px;padding:12px 18px;border-top:1px solid rgba(59,130,246,0.1);background:rgba(6,12,24,0.5);align-items:center}
+  .foot-lbl{font-size:10px;color:#3a5070;font-family:monospace;letter-spacing:0.07em;margin-right:auto}
+  .copy-all{padding:7px 16px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);color:#5a8cb0;font-family:monospace;font-size:9px;letter-spacing:0.08em;cursor:pointer;text-transform:uppercase;transition:all 0.15s}
+  .copy-all:hover{background:rgba(59,130,246,0.15);color:#3b82f6}
+  .copy-all.copied{background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.3);color:#22c55e}
+  .empty{font-family:monospace;font-size:11px;color:#1e2e42;padding:48px 24px;text-align:center;letter-spacing:0.05em;line-height:1.8}
+  .risk-badge{display:inline-flex;align-items:center;padding:2px 9px;font-family:monospace;font-size:9px;letter-spacing:0.1em;margin-left:8px}
+  .risk-LOW{border:1px solid rgba(34,197,94,0.3);color:#22c55e;background:rgba(34,197,94,0.1)}
+  .risk-MEDIUM{border:1px solid rgba(234,179,8,0.3);color:#eab308;background:rgba(234,179,8,0.1)}
+  .risk-HIGH{border:1px solid rgba(239,68,68,0.3);color:#ef4444;background:rgba(239,68,68,0.1)}
+
+  @media(max-width:800px){.body{grid-template-columns:1fr}.output-section{grid-column:1}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">ARC</div>
+  <div>
+    <div class="h-title">Adversarial Reasoning Council</div>
+    <div class="h-sub">SESSION BRIEF GENERATOR · v1.5</div>
+  </div>
+  <div class="status"><div class="dot"></div>READY</div>
+</div>
+
+<div class="body">
+
+  <!-- Panel 01 -->
+  <div class="panel">
+    <div class="panel-hdr">
+      <span class="panel-num">01</span>
+      <span class="panel-title">Session Parameters</span>
+    </div>
+    <div class="panel-body">
+      <div class="field">
+        <label class="lbl">Principal Name <span class="req">*</span></label>
+        <input id="principalName" type="text" placeholder="Your full name">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label class="lbl">Task Type <span class="req">*</span></label>
+          <select id="taskType" onchange="onTaskTypeChange()">
+            <option value="architecture_system_design">Architecture / System Design</option>
+            <option value="research_synthesis">Research / Synthesis</option>
+            <option value="learning_certification">Learning / Certification Prep</option>
+            <option value="strategic_policy">Strategic / Policy</option>
+            <option value="technical_coding">Technical Coding</option>
+            <option value="data_analysis">Data Analysis / Math</option>
+            <option value="real_time_information">Real-Time Information</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Risk Level <span class="req">*</span></label>
+          <select id="riskLevel">
+            <option value="LOW">LOW</option>
+            <option value="MEDIUM">MEDIUM</option>
+            <option value="HIGH" selected>HIGH</option>
+          </select>
+          <div class="hint">HIGH activates Phase 4C + reasoning models</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl">Task <span class="req">*</span></label>
+        <textarea id="task" rows="4" placeholder="State the task clearly. Include success criteria."></textarea>
+      </div>
+      <div class="field">
+        <label class="lbl">Role Assignments</label>
+        <div class="hint" style="margin-bottom:7px">Auto-loaded from v1.5 Section 2.1. Override if needed.</div>
+        <div class="roles-grid">
+          <div class="role-item">
+            <div class="role-lbl">Generator</div>
+            <select class="role-select" id="role_generator"><option>Claude</option><option>ChatGPT</option><option>Gemini</option></select>
+          </div>
+          <div class="role-item">
+            <div class="role-lbl">Red Team</div>
+            <select class="role-select" id="role_red_team"><option>Claude</option><option>ChatGPT</option><option selected>Gemini</option></select>
+          </div>
+          <div class="role-item">
+            <div class="role-lbl">Synthesizer</div>
+            <select class="role-select" id="role_synthesizer"><option>Claude</option><option>ChatGPT</option><option>Gemini</option></select>
+          </div>
+          <div class="role-item">
+            <div class="role-lbl">Verifier</div>
+            <select class="role-select" id="role_verifier"><option>Claude</option><option selected>ChatGPT</option><option>Gemini</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 02 -->
+  <div class="panel">
+    <div class="panel-hdr">
+      <span class="panel-num">02</span>
+      <span class="panel-title">Principal Session Brief</span>
+    </div>
+    <div class="panel-body">
+      <div class="field">
+        <label class="lbl">Domain Expertise</label>
+        <input id="domainExpertise" type="text" placeholder="e.g. IT Architecture, DoD Acquisition, AI Systems">
+      </div>
+      <div class="field">
+        <label class="lbl">Current Baseline</label>
+        <textarea id="baseline" rows="3" placeholder="What the council should not re-explain. What you already know."></textarea>
+      </div>
+      <div class="field">
+        <label class="lbl">Known Blind Spots</label>
+        <textarea id="blindSpots" rows="3" placeholder="Where you want harder critique. What you are less certain about."></textarea>
+      </div>
+      <div class="field">
+        <label class="lbl">Active Task Context</label>
+        <input id="taskContext" type="text" placeholder="Current project or decision this feeds">
+      </div>
+      <div class="field">
+        <label class="lbl">Output Style</label>
+        <input id="outputStyle" type="text" value="Tight and direct. No filler. Active voice.">
+      </div>
+      <div class="divider"></div>
+      <button class="btn" id="generateBtn" onclick="generateBriefs()">Generate Activation Briefs</button>
+    </div>
+  </div>
+
+  <!-- Panel 03 -->
+  <div class="output-section">
+    <div class="panel">
+      <div class="panel-hdr">
+        <span class="panel-num">03</span>
+        <span class="panel-title">Activation Briefs</span>
+        <span id="riskBadge" style="display:none" class="risk-badge"></span>
+      </div>
+      <div id="outputEmpty" class="empty">Fill in session parameters above and hit Generate.<br>All three activation briefs will appear here.</div>
+      <div id="outputContent" style="display:none">
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('Claude',this)">Claude</button>
+          <button class="tab" onclick="switchTab('ChatGPT',this)">ChatGPT</button>
+          <button class="tab" onclick="switchTab('Gemini',this)">Gemini</button>
+        </div>
+        <div class="brief-box">
+          <div class="brief-text" id="briefText"></div>
+          <button class="copy-btn" id="copyBtn" onclick="copyBrief()">Copy</button>
+        </div>
+        <div class="footer">
+          <span class="foot-lbl">Paste each brief into the corresponding platform before providing the task.</span>
+          <button class="copy-all" id="copyAllBtn" onclick="copyAll()">Copy All 3</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DEFAULT_ROLES = {
+  architecture_system_design: {generator:"Claude",red_team:"Gemini",synthesizer:"Claude",verifier:"ChatGPT"},
+  research_synthesis:         {generator:"Gemini",red_team:"Claude",synthesizer:"ChatGPT",verifier:"Gemini"},
+  learning_certification:     {generator:"ChatGPT",red_team:"Claude",synthesizer:"Claude",verifier:"ChatGPT"},
+  strategic_policy:           {generator:"Claude",red_team:"Gemini",synthesizer:"ChatGPT",verifier:"Claude"},
+  technical_coding:           {generator:"Claude",red_team:"ChatGPT",synthesizer:"Claude",verifier:"ChatGPT"},
+  data_analysis:              {generator:"Gemini",red_team:"Claude",synthesizer:"ChatGPT",verifier:"Gemini"},
+  real_time_information:      {generator:"Gemini",red_team:"ChatGPT",synthesizer:"Claude",verifier:"Gemini"},
+};
+
+const TASK_LABELS = {
+  architecture_system_design:"Architecture / System Design",
+  research_synthesis:"Research / Synthesis",
+  learning_certification:"Learning / Certification Prep",
+  strategic_policy:"Strategic / Policy",
+  technical_coding:"Technical Coding",
+  data_analysis:"Data Analysis / Math",
+  real_time_information:"Real-Time Information"
+};
+
+const ROLE_INSTRUCTIONS = {
+  generator:`IF ASSIGNED GENERATOR:
+Produce three or more distinct candidate frameworks. No single draft.
+Each candidate must be meaningfully different.
+Append an Assumption Log:
+  ASSUMPTION LOG
+  A1: [assumption] — Status: Untested
+Append: PHASE CONFIDENCE: [0-100] — [one sentence rationale]
+No introductions. No summaries.`,
+  red_team:`IF ASSIGNED RED TEAM:
+Generate your own independent solution first. Label it: INDEPENDENT SOLUTION.
+Then critique the provided frameworks. Label it: FRAMEWORK CRITIQUE.
+Rate each weakness: High, Medium, or Low.
+Challenge every Assumption Log item: Challenged, Confirmed, or Invalidated.
+You do not know which model produced the frameworks.
+Append: PHASE CONFIDENCE: [0-100] — [one sentence rationale]
+Do not defend any framework. Break them.`,
+  red_team_high:`IF ASSIGNED RED TEAM:
+Generate your own independent solution first. Label it: INDEPENDENT SOLUTION.
+Then critique the provided frameworks. Label it: FRAMEWORK CRITIQUE.
+Rate each weakness: High, Medium, or Low.
+Challenge every Assumption Log item: Challenged, Confirmed, or Invalidated.
+You do not know which model produced the frameworks.
+Append: PHASE CONFIDENCE: [0-100] — [one sentence rationale]
+Do not defend any framework. Break them.
+
+IF ASSIGNED PHASE 4C — FINAL VERDICT (HIGH Risk only):
+You will receive the Generator rebuttal after your Phase 4 critique.
+Issue a final verdict per weakness: SUSTAINED / PARTIALLY SUSTAINED / WITHDRAWN
+One sentence of reasoning per verdict.
+Append: PHASE CONFIDENCE: [0-100] — [one sentence rationale]`,
+  synthesizer:`IF ASSIGNED SYNTHESIZER / CHAIRMAN:
+Read: Generation output, Red Team critique, Generator rebuttal, Red Team verdicts.
+Resolve all Sustained and Partially Sustained Red Team verdicts.
+Carry forward only Confirmed assumptions.
+Apply Evidence Taxonomy to all material claims: FACT, INFERENCE, SPECULATION, UNVERIFIED.
+Append: PHASE CONFIDENCE: [0-100] — [one sentence rationale]`,
+  verifier:`IF ASSIGNED VERIFIER:
+Classify every material claim: FACT, INFERENCE, SPECULATION, or UNVERIFIED.
+Assign: VERIFICATION CONFIDENCE: [0-100]
+If below 70: name the specific claims lowering the score.
+If below 50: state RECOMMEND FULL RESTART and explain why.
+Append: PHASE CONFIDENCE: [0-100] — [one sentence rationale]
+
+IF ASSIGNED MULTI-MODEL RANKING (Phase 6B):
+Score the verified output on three dimensions (0-100 each):
+  TECHNICAL ACCURACY: [score] — [rationale]
+  COMPLETENESS: [score] — [rationale]
+  RISK COVERAGE: [score] — [rationale]
+Score the content. Not the model that produced it.`,
+  verifier_high:`IF ASSIGNED VERIFIER:
+Classify every material claim: FACT, INFERENCE, SPECULATION, or UNVERIFIED.
+For HIGH risk: cite a primary source for every FACT-rated claim.
+  Acceptable sources: official vendor documentation, .gov, .edu, peer-reviewed publications.
+Assign: VERIFICATION CONFIDENCE: [0-100]
+If below 70: name the specific claims lowering the score.
+If below 50: state RECOMMEND FULL RESTART and explain why.
+Append: PHASE CONFIDENCE: [0-100] — [one sentence rationale]
+
+IF ASSIGNED MULTI-MODEL RANKING (Phase 6B):
+Score the verified output on three dimensions (0-100 each):
+  TECHNICAL ACCURACY: [score] — [rationale]
+  COMPLETENESS: [score] — [rationale]
+  RISK COVERAGE: [score] — [rationale]
+Score the content. Not the model that produced it.`
+};
+
+let briefs = {};
+let activeModel = 'Claude';
+
+function val(id){ return document.getElementById(id).value.trim(); }
+
+function onTaskTypeChange(){
+  const tt = val('taskType');
+  const r = DEFAULT_ROLES[tt];
+  if(!r) return;
+  setSelectVal('role_generator', r.generator);
+  setSelectVal('role_red_team', r.red_team);
+  setSelectVal('role_synthesizer', r.synthesizer);
+  setSelectVal('role_verifier', r.verifier);
+}
+
+function setSelectVal(id, v){
+  const el = document.getElementById(id);
+  for(let o of el.options){ if(o.value===v){el.value=v;return;} }
+}
+
+function getRoles(){
+  return {
+    generator: val('role_generator'),
+    red_team:  val('role_red_team'),
+    synthesizer: val('role_synthesizer'),
+    verifier:  val('role_verifier')
+  };
+}
+
+function getAssignedRole(model, roles){
+  for(const [key,m] of Object.entries(roles)){
+    if(m===model) return key;
+  }
+  return null;
+}
+
+function buildBrief(model, roles){
+  const risk      = val('riskLevel');
+  const taskType  = val('taskType');
+  const principal = val('principalName') || '[Principal]';
+  const task      = val('task') || '[Task not entered]';
+  const domain    = val('domainExpertise') || '[Not specified]';
+  const baseline  = val('baseline') || '[Not specified]';
+  const blindSpots= val('blindSpots') || '[Not specified]';
+  const style     = val('outputStyle') || 'Tight and direct. No filler. Active voice.';
+  const context   = val('taskContext') || '[Not specified]';
+  const taskLabel = TASK_LABELS[taskType] || taskType;
+  const roleKey   = getAssignedRole(model, roles);
+  const roleName  = roleKey ? roleKey.replace(/_/g,' ').toUpperCase() : 'UNASSIGNED';
+
+  let instruction = '';
+  if(roleKey === 'red_team'){
+    instruction = risk === 'HIGH' ? ROLE_INSTRUCTIONS.red_team_high : ROLE_INSTRUCTIONS.red_team;
+  } else if(roleKey === 'verifier'){
+    instruction = risk === 'HIGH' ? ROLE_INSTRUCTIONS.verifier_high : ROLE_INSTRUCTIONS.verifier;
+  } else if(roleKey && ROLE_INSTRUCTIONS[roleKey]){
+    instruction = ROLE_INSTRUCTIONS[roleKey];
+  } else {
+    instruction = 'Await role assignment from Principal.';
+  }
+
+  return `ARC ACTIVATION BRIEF — ${model.toUpperCase()}
+Framework: Adversarial Reasoning Council (ARC) v1.5
+Principal: ${principal} — Final authority. All outputs subject to Principal review and override.
+
+YOUR ASSIGNED ROLE: ${roleName}
+
+${instruction}
+
+SESSION PARAMETERS:
+  Risk Level:   ${risk}
+  Task Type:    ${taskLabel}
+  Generator:    ${roles.generator}
+  Red Team:     ${roles.red_team}
+  Synthesizer:  ${roles.synthesizer}
+  Verifier:     ${roles.verifier}
+
+PRINCIPAL SESSION BRIEF:
+  Domain Expertise:    ${domain}
+  Current Baseline:    ${baseline}
+  Known Blind Spots:   ${blindSpots}
+  Output Style:        ${style}
+  Active Task Context: ${context}
+
+TASK:
+${task}
+
+Confirm you have received this brief and state your assigned role before I provide any additional input.`;
+}
+
+function generateBriefs(){
+  const roles = getRoles();
+  briefs = {
+    Claude:  buildBrief('Claude', roles),
+    ChatGPT: buildBrief('ChatGPT', roles),
+    Gemini:  buildBrief('Gemini', roles),
+  };
+
+  document.getElementById('outputEmpty').style.display = 'none';
+  document.getElementById('outputContent').style.display = 'block';
+
+  const risk = val('riskLevel');
+  const badge = document.getElementById('riskBadge');
+  badge.textContent = risk;
+  badge.className = 'risk-badge risk-' + risk;
+  badge.style.display = 'inline-flex';
+
+  const btn = document.getElementById('generateBtn');
+  btn.textContent = '✓ Generated — Regenerate';
+  btn.className = 'btn done';
+
+  switchTabByName('Claude');
+}
+
+function switchTab(model, el){
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  activeModel = model;
+  document.getElementById('briefText').textContent = briefs[model] || '';
+  const cb = document.getElementById('copyBtn');
+  cb.textContent = 'Copy';
+  cb.className = 'copy-btn';
+}
+
+function switchTabByName(model){
+  const tabs = document.querySelectorAll('.tab');
+  tabs.forEach(t => {
+    if(t.textContent.trim() === model){
+      t.classList.add('active');
+      activeModel = model;
+    } else {
+      t.classList.remove('active');
+    }
+  });
+  document.getElementById('briefText').textContent = briefs[model] || '';
+}
+
+function copyBrief(){
+  if(!briefs[activeModel]) return;
+  navigator.clipboard.writeText(briefs[activeModel]).then(()=>{
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Copied';
+    btn.className = 'copy-btn copied';
+    setTimeout(()=>{ btn.textContent='Copy'; btn.className='copy-btn'; }, 2000);
+  });
+}
+
+function copyAll(){
+  const all = ['Claude','ChatGPT','Gemini'].map(m => '─'.repeat(50)+'\n'+briefs[m]).join('\n\n');
+  navigator.clipboard.writeText(all).then(()=>{
+    const btn = document.getElementById('copyAllBtn');
+    btn.textContent = '✓ Copied All';
+    btn.className = 'copy-all copied';
+    setTimeout(()=>{ btn.textContent='Copy All 3'; btn.className='copy-all'; }, 2500);
+  });
+}
+</script>
+</body>
+</html>
