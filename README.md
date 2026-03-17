@@ -72,6 +72,13 @@ Add export options
 
 Align with broader ARC Council tooling and governance workflows
 
+## Governance Artifacts
+
+This project is part of the ARC, Adversarial Reasoning Council, operating framework.
+
+- [ARC Charter v1.5](docs/governance/ARC-Charter-v1.5.pdf)
+- [ARC SOP v1.5](docs/governance/ARC-SOP-v1.5.pdf)
+
 Author
 
 Thorspeed
