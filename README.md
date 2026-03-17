@@ -79,6 +79,16 @@ This project is part of the ARC, Adversarial Reasoning Council, operating framew
 - [ARC Charter v1.5](docs/governance/ARC-Charter-v1.5.pdf)
 - [ARC SOP v1.5](docs/governance/ARC-SOP-v1.5.pdf)
 
+## Demo
+
+### Interface
+
+![ARC UI](docs/images/arc-ui.png)
+
+### Generated Output
+
+![ARC Output](docs/images/arc-output.png)
+
 Author
 
 Thorspeed
